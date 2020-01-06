@@ -107,6 +107,20 @@ func UseFieldResolvers() SchemaOpt {
 	}
 }
 
+// UseDynamicResolvers specifies whether to use dynamic resolvers
+func UseDynamicResolvers() SchemaOpt {
+	return func(s *Schema) {
+		s.schema.UseDynamicResolvers = true
+	}
+}
+
+// UseDefaultResolvers specifies whether to use default resolvers
+func UseDefaultResolvers(defaultResolversProvider types.DefaultResolversProvider) SchemaOpt {
+	return func(s *Schema) {
+		s.schema.DefaultResolversProvider = defaultResolversProvider
+	}
+}
+
 // MaxDepth specifies the maximum field nesting depth in a query. The default is 0 which disables max depth checking.
 func MaxDepth(n int) SchemaOpt {
 	return func(s *Schema) {

@@ -28,13 +28,24 @@ type Schema struct {
 	// http://spec.graphql.org/#sec-Type-System.Directives
 	Directives map[string]*DirectiveDefinition
 
-	UseFieldResolvers bool
+	UseFieldResolvers        bool
+	UseDynamicResolvers      bool
+	DefaultResolversProvider DefaultResolversProvider
 
 	EntryPointNames map[string]string
 	Objects         []*ObjectTypeDefinition
 	Unions          []*Union
 	Enums           []*EnumTypeDefinition
 	Extensions      []*Extension
+}
+
+type DefaultResolversProvider interface {
+	GetResolver(fieldDefinition FieldDefinition) *ResolverInfo
+}
+
+type ResolverInfo struct {
+	Resolver   interface{}
+	MethodName string
 }
 
 func (s *Schema) Resolve(name string) Type {

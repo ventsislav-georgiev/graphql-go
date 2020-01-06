@@ -76,8 +76,15 @@ When using `UseFieldResolvers` schema option, a struct field will be used *only*
 
 The method has up to two arguments:
 
-- Optional `context.Context` argument.
-- Mandatory `*struct { ... }` argument if the corresponding GraphQL field has arguments. The names of the struct fields have to be [exported](https://golang.org/ref/spec#Exported_identifiers) and have to match the names of the GraphQL arguments in a non-case-sensitive way.
+- Optional arguments:
+  * `context.Context`
+  * `types.FieldDefinition` Meta for the GraphQL field that is being resolved.
+  * `types.PathSegment` An recursive structure holding all the resolvers i.e. for `book.author.name` when passed to the `name` field resolver it will contain the resolvers for `author` and `book` also.
+  * `types.SelectedFields` Meta for the GraphQL selected fields of a type.
+- Mandatory arguments if the corresponding GraphQL field has arguments:
+  * `*struct { ... }` The names of the struct fields have to be [exported](https://golang.org/ref/spec#Exported_identifiers) and have to match the names of the GraphQL arguments in a non-case-sensitive way.
+or
+  * `map[string]interface{}` Provides a non-type checked way of receiving all passed arguments to the GraphQL field.
 
 The method has up to two results:
 
@@ -100,10 +107,21 @@ func (r *helloWorldResolver) Hello(ctx context.Context) (string, error) {
 }
 ```
 
+And with all available arguments:
+```go
+func (r *helloWorldResolver) Hello(ctx context.Context, fieldDefinition types.FieldDefinition, pathSegment types.PathSegment, args map[string]interface{}) (string, error) {
+	return "Hello world!", nil
+}
+```
+
+> The type checked args struct can be used in place of the map.
+
 ### Schema Options
 
 - `UseStringDescriptions()` enables the usage of double quoted and triple quoted. When this is not enabled, comments are parsed as descriptions instead.
 - `UseFieldResolvers()` specifies whether to use struct field resolvers.
+- `UseDefaultResolvers(defaultResolversProvider types.DefaultResolversProvider)` allows for passing a struct for providing a field resolver dynamically. It requires the struct to have a `GetResolver(fieldDefinition types.FieldDefinition) *types.ResolverInfo` method which will be invoked for each field and return a types.ResolverInfo which will be used for resolving the field.
+- `UseDynamicResolvers()` specifies whether to allow the resolvers to return a generic struct for resolving the fields. Once enabled the resolvers can return a `types.DynamicResolver` struct. Usinng this struct for resolving skips the type checking of the return result.
 - `MaxDepth(n int)` specifies the maximum field nesting depth in a query. The default is 0 which disables max depth checking.
 - `MaxParallelism(n int)` specifies the maximum number of resolvers per request allowed to run in parallel. The default is 10.
 - `Tracer(tracer trace.Tracer)` is used to trace queries and fields. It defaults to `trace.OpenTracingTracer`.

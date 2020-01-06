@@ -12,6 +12,7 @@ type FieldDefinition struct {
 	Directives DirectiveList
 	Desc       string
 	Loc        errors.Location
+	Parent     *FieldDefinition
 }
 
 // FieldsDefinition is a list of an ObjectTypeDefinition's Fields.

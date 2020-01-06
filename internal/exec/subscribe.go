@@ -41,6 +41,19 @@ func (r *Request) Subscribe(ctx context.Context, s *resolvable.Schema, op *types
 		if f.field.HasContext {
 			in = append(in, reflect.ValueOf(ctx))
 		}
+		if f.field.HasFieldDefinition {
+			in = append(in, reflect.ValueOf(f.field.FieldDefinition))
+		}
+		if f.field.HasPathSegment {
+			in = append(in, reflect.ValueOf(nil))
+		}
+		if f.field.HasSelectedFields {
+			sels := selectionToSelectedFields(sels)
+			in = append(in, reflect.ValueOf(types.SelectedFields{Fields: sels}))
+		}
+		if f.field.HasArgs {
+			in = append(in, reflect.ValueOf(f.field.Args))
+		}
 		if f.field.ArgsPacker != nil {
 			in = append(in, f.field.PackedArgs)
 		}
@@ -138,7 +151,7 @@ func (r *Request) Subscribe(ctx context.Context, s *resolvable.Schema, op *types
 						defer subR.handlePanic(subCtx)
 
 						var buf bytes.Buffer
-						subR.execSelectionSet(subCtx, f.sels, f.field.Type, &pathSegment{nil, f.field.Alias}, s, resp, &buf)
+						subR.execSelectionSet(subCtx, f.sels, f.field.Type, &types.PathSegment{Parent: nil, Value: f.field.Alias, Resolver: f.resolver}, s, resp, &buf)
 
 						propagateChildError := false
 						if _, nonNullChild := f.field.Type.(*types.NonNull); nonNullChild && resolvedToNull(&buf) {

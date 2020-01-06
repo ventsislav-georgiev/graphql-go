@@ -126,16 +126,18 @@ func applySelectionSet(r *Request, s *resolvable.Schema, e *resolvable.Object, s
 
 				var args map[string]interface{}
 				var packedArgs reflect.Value
-				if fe.ArgsPacker != nil {
+				if fe.HasArgs || fe.ArgsPacker != nil {
 					args = make(map[string]interface{})
 					for _, arg := range field.Arguments {
 						args[arg.Name.Name] = arg.Value.Deserialize(r.Vars)
 					}
 					var err error
-					packedArgs, err = fe.ArgsPacker.Pack(args)
-					if err != nil {
-						r.AddError(errors.Errorf("%s", err))
-						return
+					if fe.ArgsPacker != nil {
+						packedArgs, err = fe.ArgsPacker.Pack(args)
+						if err != nil {
+							r.AddError(errors.Errorf("%s", err))
+							return
+						}
 					}
 				}
 
@@ -146,7 +148,7 @@ func applySelectionSet(r *Request, s *resolvable.Schema, e *resolvable.Object, s
 					Args:       args,
 					PackedArgs: packedArgs,
 					Sels:       fieldSels,
-					Async:      fe.HasContext || fe.ArgsPacker != nil || fe.HasError || HasAsyncSel(fieldSels),
+					Async:      fe.HasContext || fe.HasFieldDefinition || fe.HasPathSegment || fe.HasSelectedFields || fe.HasArgs || fe.ArgsPacker != nil || fe.HasError || HasAsyncSel(fieldSels),
 				})
 			}
 

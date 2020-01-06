@@ -1,7 +1,6 @@
 package resolvable
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/graph-gophers/graphql-go/introspection"
@@ -22,13 +21,13 @@ func newMeta(s *types.Schema) *Meta {
 	b := newBuilder(s)
 
 	metaSchema := s.Types["__Schema"].(*types.ObjectTypeDefinition)
-	so, err := b.makeObjectExec(metaSchema.Name, metaSchema.Fields, nil, false, reflect.TypeOf(&introspection.Schema{}))
+	so, err := b.makeObjectExec(nil, metaSchema.Name, metaSchema.Fields, nil, false, reflect.TypeOf(&introspection.Schema{}))
 	if err != nil {
 		panic(err)
 	}
 
 	metaType := s.Types["__Type"].(*types.ObjectTypeDefinition)
-	t, err := b.makeObjectExec(metaType.Name, metaType.Fields, nil, false, reflect.TypeOf(&introspection.Type{}))
+	t, err := b.makeObjectExec(nil, metaType.Name, metaType.Fields, nil, false, reflect.TypeOf(&introspection.Type{}))
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +41,7 @@ func newMeta(s *types.Schema) *Meta {
 			Name: "__typename",
 			Type: &types.NonNull{OfType: s.Types["String"]},
 		},
-		TraceLabel: fmt.Sprintf("GraphQL field: __typename"),
+		TraceLabel: "GraphQL field: __typename",
 	}
 
 	fieldSchema := Field{
@@ -50,7 +49,7 @@ func newMeta(s *types.Schema) *Meta {
 			Name: "__schema",
 			Type: s.Types["__Schema"],
 		},
-		TraceLabel: fmt.Sprintf("GraphQL field: __schema"),
+		TraceLabel: "GraphQL field: __schema",
 	}
 
 	fieldType := Field{
@@ -58,7 +57,7 @@ func newMeta(s *types.Schema) *Meta {
 			Name: "__type",
 			Type: s.Types["__Type"],
 		},
-		TraceLabel: fmt.Sprintf("GraphQL field: __type"),
+		TraceLabel: "GraphQL field: __type",
 	}
 
 	return &Meta{
